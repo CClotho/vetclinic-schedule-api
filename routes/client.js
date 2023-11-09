@@ -1,0 +1,76 @@
+const express = require("express");
+const router = express.Router();
+const passport = require('passport')
+
+// if appointment status is still pending, the user can delete it else cant
+// if during appointment user can't come they will request to cancel the appointment because they can't come
+
+
+
+// FOR PROFILE
+
+//Get client's profile
+router.get('/profile', client_controller.display_profile)
+
+
+// FOR APPOINTMENTS
+router.get("appointments/today", appointment_controller.appointments_today_list)
+
+// Get todays appointment in queue  ( fetch all appointments including other client appointments for today)
+
+router.get("appointments/today/queue", appointment_controller.appointment_today_queue)
+
+// GET all clients appointments that are approved for the week sorted by date
+//add month filter
+router.get("appointments/week", appointment_controller.appointment_week_list)
+
+// GET all clients appointments that are approved for the month sorted by date
+// add month filter
+router.get("appointments/month", appointment_controller.appointments_month_list)
+
+//Get all appointments that are pending today sorted by date
+// add month filter
+router.get("appointments/pending/today", appointment_controller.appointments_pending_today_list)
+
+//Get all appointments that are pending for the week sorted by date 
+router.get("appointments/pending/week", appointment_controller.appointments_pending_week_list)
+
+// Get all appointments that are pending for the month sorted by date
+router.get("appointment/pending/month", appointment_controller.appointments_pending_month_list)
+
+// GET all appointments that are declined sorted by date
+router.get("appointments/declined", appointment_controller.appointments_declined_list)
+
+// GET all appointments that are cancelled sorted by date
+router.get("appointments/cancelled", appointment_controller.appointments_cancelled_list)
+
+//Get all appointments that are reschedule sorted by date
+router.get("appointments/reschedule", appointment_controller.appointments_reschedule_list)
+
+// Get all appointments that are finished sorted by date
+router.get("appointments/finished", appointment_controller.appointments_finished_list)
+
+//POST request for creating new appointment for a client through form
+router.post("/appointments/create",  appointment_controller.appointments_create)
+
+//POST request for cancellation of appointment through form
+router.post("/appointments/:id/cancel",appointment_controller.appointments_cancel)
+
+
+// FOR SERVICE
+
+// GET list of services for grooming 
+router.get('service/grooming', service_controller.grooming_service_list)
+
+// GET list of services for treatment
+router.get('service/treatment', service_controller.treatment_service_list)
+
+
+// FOR PETS
+// Get list of pets of the client
+router.get("/pets", pet_controller.pet_list)
+
+// Get specific pet of the client
+router.get("/pets/:id", pet_controller.pet_list)
+
+module.exports = router;
