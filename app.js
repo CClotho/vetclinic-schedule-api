@@ -61,9 +61,9 @@ passport.use(new JwtStrategy(opts, async (jwt_payload, done) => {
 app.use(passport.initialize());
 
 // Routes
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-const adminRouter = require("./routes/admin");
+var indexRouter = require('./api/index');
+var usersRouter = require('./api/users');
+const adminRouter = require("./api/admin");
 
 app.use('/', indexRouter);
 app.use('/user', usersRouter);
