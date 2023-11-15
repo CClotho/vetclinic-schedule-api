@@ -1,20 +1,42 @@
 const express = require("express");
 const router = express.Router();
-const passport = require('passport')
-
+const {validate} =  require('../middlewares/validator');
+const passport = require("passport");
 // if appointment status is still pending, the user can delete it else cant
 // if during appointment user can't come they will request to cancel the appointment because they can't come
 
+const appointment_controller = require("../controllers/client/appointmentController");
+const pet_controller = require("../controllers/client/petController");
 
+
+//POST request for creating new appointment for a client through form
+router.post("/appointment/create",
+passport.authenticate('jwt', { session: false }),
+validate, 
+appointment_controller.create_client_appointment)
+
+
+// FOR PETS
+// Get list of pets of the client
+router.get("/pets",
+passport.authenticate('jwt', { session: false }),
+validate, 
+pet_controller.pet_list)
+
+
+
+/* Get specific pet of the client
+router.get("/pets/:id", pet_controller.pet_list) */
+
+/* 
+// FOR APPOINTMENTS
+router.get("appointments/today", appointment_controller.appointments_today_list)
 
 // FOR PROFILE
 
 //Get client's profile
 router.get('/profile', client_controller.display_profile)
 
-
-// FOR APPOINTMENTS
-router.get("appointments/today", appointment_controller.appointments_today_list)
 
 // Get todays appointment in queue  ( fetch all appointments including other client appointments for today)
 
@@ -50,8 +72,6 @@ router.get("appointments/reschedule", appointment_controller.appointments_resche
 // Get all appointments that are finished sorted by date
 router.get("appointments/finished", appointment_controller.appointments_finished_list)
 
-//POST request for creating new appointment for a client through form
-router.post("/appointments/create",  appointment_controller.appointments_create)
 
 //POST request for cancellation of appointment through form
 router.post("/appointments/:id/cancel",appointment_controller.appointments_cancel)
@@ -65,12 +85,6 @@ router.get('service/grooming', service_controller.grooming_service_list)
 // GET list of services for treatment
 router.get('service/treatment', service_controller.treatment_service_list)
 
+*/
 
-// FOR PETS
-// Get list of pets of the client
-router.get("/pets", pet_controller.pet_list)
-
-// Get specific pet of the client
-router.get("/pets/:id", pet_controller.pet_list)
-
-module.exports = router;
+module.exports = router; 

@@ -4,25 +4,37 @@ const mongoose = require("mongoose");
 
 const appointmentValidationRules = () => {
   return [
-    body('client').notEmpty().withMessage('Client is required').bail()
-      .custom(value => mongoose.Types.ObjectId.isValid(value)).withMessage('Invalid client ID'),
-    body('pet').notEmpty().withMessage('Pet is required').bail()
-      .custom(value => mongoose.Types.ObjectId.isValid(value)).withMessage('Invalid pet ID'),
-    body('date').custom((value, { req }) => {
-      if (!DateTime.fromISO(value).isValid) {
-        throw new Error('Invalid date format');
-      }
-      return true;
-    }),
-    body('doctor').optional().custom(value => !value || mongoose.Types.ObjectId.isValid(value)).withMessage('Invalid doctor ID'),
-    body('service_type').isIn(['grooming', 'treatment']).withMessage('Invalid service type'),
-    body('services').optional().isArray().bail()
-      .custom(value => value.every(id => mongoose.Types.ObjectId.isValid(id))).withMessage('Invalid service ID'),
-    body('notes').optional().isString().withMessage('Notes must be a string'),
-    body('priority').optional().isIn(['High', 'Low', 'Medium']).withMessage('Invalid priority value'),
-    body('status').optional().isIn(['pending', 'approved', 'declined', 'inProgress', 'finished', 'cancelled', 'noShow', 'reschedule']).withMessage('Invalid status value')
+    // ...other validations...
+
+    body('services')
+      .isArray().withMessage('Services must be an array')
+      .custom((services, { req }) => {
+        return services.every(service => {
+          // Validate the serviceId
+          if (!mongoose.Types.ObjectId.isValid(service.serviceId)) {
+            throw new Error('Invalid service ID');
+          }
+
+          // Validate the serviceType
+          if (!['grooming', 'treatment'].includes(service.serviceType)) {
+            throw new Error('Invalid service type');
+          }
+
+          // Validate the chosenSize for grooming services
+          if (service.serviceType === 'grooming') {
+            if (!service.chosenSize || !mongoose.Types.ObjectId.isValid(service.chosenSize)) {
+              throw new Error('Invalid or missing size ID for grooming service');
+            }
+          }
+
+          return true;
+        });
+      }).withMessage('Invalid service data'),
+
+    // ...other validations...
   ];
 };
+
 
 module.exports = {
   appointmentValidationRules

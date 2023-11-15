@@ -25,11 +25,20 @@ app.use(cors({
   credentials: true,
 }));
 
-// Logger
-if (process.env.NODE_ENV !== 'production') {
-  app.use(logger('dev'));
-}
 
+app.use(function(err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+res.status(err.status || 500);
+  res.json({ error: err.message });
+});
+// Logger
+ if (process.env.NODE_ENV !== 'production') {
+  app.use(logger('dev'));
+
+ }
 // Parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -64,16 +73,23 @@ app.use(passport.initialize());
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const adminRouter = require("./routes/admin");
+const clientRouter = require("./routes/client")
+const sharedRouter = require('./routes/shared')
 
 app.use('/', indexRouter);
 app.use('/user', usersRouter);
 app.use("/admin", adminRouter);
-
+app.use("/client", clientRouter)
+app.use("/service", sharedRouter)
 // Catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
 });
 
+
+
+
+/*
 // Error handler
 app.use(function(err, req, res, next) {
   // Set locals, providing error only in development
@@ -82,13 +98,16 @@ app.use(function(err, req, res, next) {
 
   // Render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.render('error'); // <-- This line is likely causing the issue
 });
 
-// Start server
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+*/
+// Error handler
+app.use(function(err, req, res, next) {
+  res.status(err.status || 500);
+  res.json({ error: err.message });
 });
+
+
 
 module.exports = app;

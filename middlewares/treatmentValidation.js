@@ -16,6 +16,8 @@ const TreatmentValidationRules = () => {
       .notEmpty().withMessage('Description is required.')
       .isString().withMessage('Description must be a string.')
       .trim().escape()
+
+    
   ];
 }
 

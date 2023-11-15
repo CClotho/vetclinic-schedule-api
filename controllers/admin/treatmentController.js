@@ -3,14 +3,6 @@ const asyncHandler = require('express-async-handler');
 //const io = require('../../bin/www');
 
 
-exports.treatment_service_list = asyncHandler(async (req, res) => {
-  try {
-      const treatmentServices = await Treatment.find();
-      res.send(treatmentServices);
-  } catch (error) {
-      res.status(500).send({ message: 'Server error' });
-  }
-});
 
 exports.create_treatment = asyncHandler(async (req, res) => {
   
@@ -18,11 +10,13 @@ exports.create_treatment = asyncHandler(async (req, res) => {
   console.log('Inside create_treatment. Request body:', req.body);
 
 
+  const avail =  "true";
   const { name, price, description } = req.body;
   const newTreatment = new Treatment({
     name,
     price,
-    description
+    description,
+    availability: avail,
   });
 
   //io.emit('new-treatment', newTreatment);

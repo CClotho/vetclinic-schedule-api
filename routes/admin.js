@@ -12,8 +12,8 @@ const multer = require('multer');
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
-
-
+const {updateStatusValidation} = require("../middlewares/appointmentStatusValidator")
+const {petSizeValidation} = require("../middlewares/petSizeValidation")
 const {ensureRole}= require("../middlewares/checkRole")
 const {validate} =  require('../middlewares/validator'); // validate for in general extracting errors from the process
 const {TreatmentValidationRules} = require("../middlewares/treatmentValidation") // For treatment service validation
@@ -68,10 +68,6 @@ validate,
 grooming_controller.delete_grooming);
 
 
-// GET list of services for treatment
-router.get('/service/treatments', 
-passport.authenticate('jwt', { session: false }), 
-treatment_controller.treatment_service_list)
 
 //POST create a treatment 
 
@@ -123,7 +119,13 @@ ensureRole("admin"),
  pet_controller.delete_pet)
 
 
-
+// POST create petsize
+router.post("/grooming/pet-size/create",
+passport.authenticate('jwt', { session: false }), 
+ensureRole("doctor"),
+petSizeValidation(),
+validate,
+grooming_controller.create_petSize)
 
 
 
@@ -133,6 +135,72 @@ appointmentValidationRules(),
 validate,  
 appointment_controller.create_appointment)
 
+// Get todays appointment in queue  ( fetch all appointments including other client appointments for today)
+
+router.get("/appointments/today/queue",
+passport.authenticate('jwt', { session: false }), 
+ensureRole("doctor"), 
+appointment_controller.appointment_today_queue) // same call with admin's appointments for today
+
+
+//GET all clients appointments that are approved for today sorted by date
+// /add month filter
+
+router.get("/appointments/today", 
+passport.authenticate('jwt', { session: false }), 
+ensureRole("admin"), 
+appointment_controller.appointments_today_list)
+
+// get pending qppointments 
+
+router.get("/appointments/pending",
+passport.authenticate('jwt', { session: false }), 
+ensureRole("doctor"),
+appointment_controller.get_pending_appointments)
+
+router.patch("/appointments/pending/update",
+passport.authenticate('jwt', { session: false }), 
+ensureRole("doctor"),
+updateStatusValidation,
+appointment_controller.update_appointment_status)
+
+
+
+
+
+// FOR HANDLING CLIENTS 
+// Display Client names as listed then render next the information to it or open to new link <Link to="`client/:id">
+
+// Create new client, delete, update
+
+//GET list of clients profile
+
+router.get("/clients/profile", 
+passport.authenticate('jwt', { session: false }), 
+ensureRole("doctor"),
+client_controller.get_clients)
+
+
+
+router.get("/clients/summary", 
+passport.authenticate('jwt', { session: false }), 
+ensureRole("doctor"),
+client_controller.get_client_id_and_pets)
+
+//GET a specific profile client based on the url iq or id passed by / <ClientProfile/> component renderer
+router.get("/client/profile/:id", client_controller.get_client)
+
+//GET list of pets of a client
+router.get("/client/profile/:id/pets", client_controller.get_client_pets) //remove this and add retrieve the list of pet of a client together with client/profile
+
+// Get a specific profile of client's pet
+router.get("/client/profile/:id/pet/:id", client_controller.get_client_pet)
+
+// POST delete a client
+router.post("/client/:id/delete", client_controller.delete_client)
+
+
+// FOR HANDLING PETS
 
 
 /* // Updating arrival and queueing position
@@ -153,18 +221,12 @@ router.patch("/appointment/:id/status")
 // Create search filter by date and title  in frontend?
 // Add  pending requests, declined, reschedule links in the appointments schedule 
 // Add notification for every new requests of appointments from clients for admin pov can do notification + 1 icon
-//GET all clients appointments that are approved for today sorted by date
-// /add month filter
-
-router.get("appointments/today", appointment_controller.appointments_today_list)
 
 // GET all clients appointments that are approved for the week sorted by date
 //add month filter
 router.get("appointments/week", appointment_controller.appointment_week_list)
 
-// Get todays appointment in queue  ( fetch all appointments including other client appointments for today)
 
-router.get("appointments/today/queue", appointment_controller.appointment_today_queue) // same call with admin's appointments for today
 
 // GET all clients appointments that are approved for the month sorted by date
 // add month filter
@@ -206,30 +268,6 @@ router.post("appointments/update/queue", appointment_controller.appointments_que
 router.post("appointments/delete", appointment_controller.appointments_delete)
 
 
-
-// FOR HANDLING CLIENTS 
-// Display Client names as listed then render next the information to it or open to new link <Link to="`client/:id">
-
-// Create new client, delete, update
-
-//GET list of clients profile
-
-router.get("clients/profile", client_controller.client_profile_list)
-
-//GET a specific profile client based on the url iq or id passed by / <ClientProfile/> component renderer
-router.get("client/profile/:id", client_controller.client_profile)
-
-//GET list of pets of a client
-router.get("client/profile/:id/pets", client_controller.client_pet_list) //remove this and add retrieve the list of pet of a client together with client/profile
-
-// Get a specific profile of client's pet
-router.get("client/profile/:id/pet/:id", client_controller.client_pet_info)
-
-// POST delete a client
-router.post("client/:id/delete", client_controller.client_delete)
-
-
-// FOR HANDLING PETS
 
 
 

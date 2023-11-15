@@ -100,6 +100,7 @@ router.post('/login', async (req, res) => {
         maxAge: 10800000, // 3 hour in milliseconds
         // secure: true, // use this in production when using HTTPS
     });
+    
     res.cookie('loggedIn', 'true', { httpOnly: false, maxAge: 10800000});
 
     

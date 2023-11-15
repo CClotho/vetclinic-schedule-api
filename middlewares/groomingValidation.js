@@ -13,28 +13,7 @@ const GroomingValidationRules = () => {
       .isString().withMessage('Description must be a string.')
       .trim().escape(),
 
-    checkSchema({
-      'sizes.*.size': {
-        in: ['body'],
-        errorMessage: 'Size must be one of: small, medium, large, extra-large, none',
-        isIn: { options: [['small', 'medium', 'large', 'extra-large', 'none']] }
-      },
-      'sizes.*.price': {
-        in: ['body'],
-        isNumeric: {
-          errorMessage: 'Price must be a number'
-        }
-      },
-      'sizes.*.details': {
-        in: ['body'],
-        isString: {
-          errorMessage: 'Details must be a string'
-        },
-        optional: { options: { nullable: true } },
-        trim: true,
-        escape: true
-      }
-    })
+  
   ];
 }
 

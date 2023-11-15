@@ -1,12 +1,17 @@
 const asyncHandler = require('express-async-handler');
 const Pet = require("../../models/pet");
 
+
+
+
+
 exports.create_pet = asyncHandler(async(req, res) => {
     try {
-      const { pet_name, breed, gender, owner } = req.body;
-  
+      const {type, pet_name, breed, gender, owner } = req.body;
+      
       const newPet = new Pet({
         pet_name,
+        type,
         breed,
         gender,
         owner
@@ -43,7 +48,7 @@ exports.create_pet = asyncHandler(async(req, res) => {
         if (req.body.pet_name) pet.pet_name = req.body.pet_name;
         if (req.body.breed) pet.breed = req.body.breed;
         if (req.body.gender) pet.gender = req.body.gender;
-
+        if(req.body.type) pet.gender = req.body.type
         // If there's a new photo uploaded, update it. 
         // This assumes you're using something like multer for file uploads.
         if (req.file) {

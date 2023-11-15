@@ -4,6 +4,7 @@ const Schema = mongoose.Schema; // so you dont have to use it like moongoose.Sch
 const PetSchema = new Schema({
  
    pet_name: {type: String,  required: true},
+   type: {type: String, required:true, enum: ['dog', 'cat', 'rabbit', 'bird', 'parrot', 'hamster']},
    breed: {type: String, required: true},
    gender: { type: String, enum:["Male", "Female"], required: true},
    owner: {type: Schema.Types.ObjectId, ref: 'Owner', required: true},

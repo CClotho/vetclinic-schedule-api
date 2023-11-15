@@ -1,18 +1,13 @@
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
 
-const sizeDetailSchema = new Schema({
-    size: { type: String, enum: ['small', 'medium', 'large', 'extra-large', 'none'] },
-    price: { type: Number, required: true },
-    details: { type: String }
-});
+const Schema = mongoose.Schema;
 
 
 const groomingSchema = new Schema({
     name: { type: String, required: true },  // e.g., "Full Grooming", "Partial Grooming"
-    sizes: [sizeDetailSchema],
+    sizes: [{type: Schema.Types.ObjectId, ref: 'PetSize' }] , // Reference to PetSize
     description: { type: String },
-    
+    availability: {type: String,  enum:['true', 'false']}
 });
 
-module.exports = mongoose.model('Grooming', groomingSchema);
+module.exports = mongoose.model('grooming', groomingSchema);

@@ -1,6 +1,17 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+const AppointmentServiceSchema = new Schema({
+    serviceId: { type: Schema.Types.ObjectId, refPath: 'services.serviceType' },
+    serviceType: { type: String, enum: ["grooming", "treatment"] },
+    chosenSize: { 
+        type: Schema.Types.ObjectId, 
+        ref: 'PetSize', // Reference to the PetSize schema
+        required: function() { return this.serviceType === 'grooming'; }
+    }
+});
+
+
 
 const Appointment = new Schema({
     
@@ -13,13 +24,10 @@ const Appointment = new Schema({
         enum: ["grooming", "treatment"],
         required: true
     },
-    services: [{
-        type: Schema.Types.ObjectId,
-        refPath: 'service_type'  // This will use the value of service_type as the collection to reference
-    }],
+    services: [AppointmentServiceSchema],
     notes: {type: String}, // can be use for reschedule
     priority: {type: String, enum:["High", "Low", "Medium"]}, // should I just edit this in front end?
-    status: {type: String, enum:['pending', 'approved', 'declined', 'inProgress', 'finished','cancelled', 'noShow', 'reschedule']},
+    status: {type: String, enum:['pending', 'approved', 'declined', 'started', 'finished','cancelled', 'noShow', 'reschedule'], default: "pending"},
     queuePosition: { type: Number, default: null },
     estimatedEndTime: { type: Date, default: null },
     arrivalTime: { type: Date,  default: Date.now },

@@ -21,11 +21,27 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
-const io = require("socket.io")(server, {});
+const io = require("socket.io")(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+    credentials: true
+  }
+});
 
 
 io.on('connection', (socket) => {
   console.log('a user connected');
+
+  socket.on('userLoggedIn', (data) => {
+    console.log(`User connected: ${data.userId}`);
+  });
+  
+  socket.on('error', (err) => {
+    console.error('Socket.IO error:', err);
+  });
+  
   socket.on('disconnect', () => {
     console.log('user disconnected');
   });
