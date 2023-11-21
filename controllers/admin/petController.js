@@ -1,36 +1,53 @@
 const asyncHandler = require('express-async-handler');
 const Pet = require("../../models/pet");
-
-
+const Client = require("../../models/client");
 
 
 
 exports.create_pet = asyncHandler(async(req, res) => {
-    try {
-      const {type, pet_name, breed, gender, owner } = req.body;
-      
+  try {
+      const { type, pet_name, breed, gender, owner } = req.body;
+    
       const newPet = new Pet({
-        pet_name,
-        type,
-        breed,
-        gender,
-        owner
+          pet_name,
+          type,
+          breed,
+          gender,
+          owner // Assuming this is the ID of the Client document
       });
-  
+
       // Check if a file was uploaded
       if (req.file) {
-        newPet.pet_photo = {
-          data: req.file.buffer,
-          contentType: req.file.mimetype
-        };
+          newPet.pet_photo = {
+              data: req.file.buffer,
+              contentType: req.file.mimetype
+          };
       }
-  
-      await newPet.save();
-      res.status(201).json({ message: 'Pet added successfully!', pet: newPet });
-    } catch (error) {
+
+      // Find the client and update their pets array
+      const client = await Client.findOne({ _id: owner });
+      
+      if (!client) {
+          return res.status(404).json({ message: "Client not found." });
+      }
+      // Save the new pet
+      const savedPet = await newPet.save();
+
+      
+
+      // Add the new pet's ID to the client's pets array
+      client.pets.push(savedPet._id);
+
+      // Save the updated client document
+      await client.save();
+
+      res.status(201).json({ message: 'Pet added successfully!', pet: savedPet });
+  } catch (error) {
+      console.error('Error creating pet:', error);
       res.status(500).json({ message: 'Server error', error: error.message });
-    }
-  });
+  }
+});
+
 
 
   // Link in client side

@@ -7,6 +7,7 @@ const Client =  require('../models/client');
 const { UserSignUpValidationRules, validate } = require('../middlewares/validator');
 const bcrypt = require('bcryptjs');
 const {generateToken} = require('../middlewares/generateToken');
+const client = require('../models/client');
 
 // create reset password for client and admin, by getting old password then new password for verification then hash it
 
@@ -82,7 +83,6 @@ router.post('/login', async (req, res) => {
     if (!user) {
         return res.status(401).json({ error: 'Invalid credentials.' });
     }
-    
 
     // Check if the provided password is correct
     const isMatch = await bcrypt.compare(password, user.password);
@@ -91,23 +91,28 @@ router.post('/login', async (req, res) => {
         return res.status(401).json({ error: 'Incorrect Password.' });
     }
 
+    const client = await Client.findOne({ user: user._id });
+
     // If credentials are valid, generate a JWT token
-    const token = generateToken(user);
+    const token = generateToken(user, client);
     
     // Send the token as an HTTP-only cookie
     res.cookie('jwt', token, {
         httpOnly: true, 
-        maxAge: 10800000, // 3 hour in milliseconds
-        // secure: true, // use this in production when using HTTPS
+        maxAge: 10800000 // 3 hour in milliseconds
     });
     
-    res.cookie('loggedIn', 'true', { httpOnly: false, maxAge: 10800000});
+    res.cookie('loggedIn', 'true', { httpOnly: false, maxAge: 10800000 });
 
-    
-    return res.status(200).json({ message: 'Logged in successfully.', role: user.role, user: user._id });
-    
-  
+    // Return the response with conditional inclusion of client ID
+    return res.status(200).json({ 
+        message: 'Logged in successfully.', 
+        role: user.role, 
+        user: user._id, 
+        ...(client && { client: client._id }) // Include client ID only if client is not null
+    });
 });
+
 
 
 
@@ -129,22 +134,35 @@ router.get('/me/profile', passport.authenticate('jwt', { session: false }), asyn
         return res.status(500).json({ error: `An error occurred: ${error.message}` });
     }
 });
-
 router.get('/me', passport.authenticate('jwt', { session: false }), async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
 
+    // Access user data directly from req.user
+    const loggedInUser = req.user; // User data
+
+    console.log("User's Id:", loggedInUser._id); // Log the user's ID
+
+    // Access and log the client's ID if the client data exists
+    if (loggedInUser.client) {
+        console.log("Client's ID:", loggedInUser.client._id); // Log the client's ID
+    } else {
+        console.log("No client associated with this user.");
+    }
+
     try {
-        const user = await User.findById(req.user._id);
-        console.log('User ID from passport:', req.user._id);
-        if (!user) {
-            return res.status(401).json({ error: 'User not found.' });
-        }
-        return res.status(200).json({ role: user.role, user: user._id  });
+        // Return user data and client ID (if client exists)
+        return res.status(200).json({ 
+            role: loggedInUser.role, 
+            user: loggedInUser._id, 
+            clientId: loggedInUser.client?._id // Include client ID only if client exists
+        });
     } catch (error) {
         console.error('Error in /me route:', error);
         return res.status(500).json({ error: 'An error occurred.' });
     }
 });
+
+
 router.post('/logout', (req, res) => {
     if (!req.cookies || !req.cookies.jwt) {
         return res.status(400).json({ message: 'No user is currently logged in.' });

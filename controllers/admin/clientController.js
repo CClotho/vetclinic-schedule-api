@@ -1,19 +1,48 @@
 const Client = require("../../models/client");
 const asyncHandler = require('express-async-handler');
-
+const mongoose = require('mongoose');
 
 
 //GET list of clients profile
+exports.get_client_ids = asyncHandler(async (req, res) => {
+    try {
+        const clientId = req.params.id;
+        console.log(`Client ID: ${clientId}`);
+
+   
+       
+        if (!mongoose.Types.ObjectId.isValid(clientId)) {
+            return res.status(400).json({ message: 'Invalid client ID' });
+        }
+        
+        const client = await Client.findOne({ _id: clientId })
+        .populate({path:'pets', select: "pet_name breed gender"})
+            
+
+        console.log(client);
+        if (!client) {
+            return res.status(404).json({ message: 'Client not found' });
+        }
+
+        res.status(200).json(client);
+    } catch (error) {
+        console.error('Error fetching client:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+
+
 
 exports.get_client_id_and_pets = asyncHandler(async (req, res) => {
     try {
         
-        const clients = await Client.find({})
+        const clientsInfo = await Client.find({})
         .select('first_name last_name')
         .populate({path:'pets', select: "pet_name breed gender"})
         
         
-        res.status(200).json(clients);
+        res.status(200).json(clientsInfo);
     } catch (error) {
         console.error('Error fetching clients:', error);
         res.status(500).json({ message: 'Server error', error: error.message });

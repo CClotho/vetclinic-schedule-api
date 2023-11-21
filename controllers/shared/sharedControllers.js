@@ -9,7 +9,7 @@ const asyncHandler = require('express-async-handler');
 
 exports.treatment_service_list = asyncHandler(async (req, res) => {
   try {
-      const treatmentServices = await Treatment.find({availability: "true"});
+      const treatmentServices = await Treatment.find({});
       res.send(treatmentServices);
   } catch (error) {
       res.status(500).send({ message: 'Server error' });
@@ -23,7 +23,7 @@ exports.grooming_service_list = asyncHandler(async (req, res) => {
 
 
 
-        const groomingServices = await Grooming.find({availability: 'true'}).populate('sizes');
+        const groomingServices = await Grooming.find({}).populate('sizes');
         res.send(groomingServices);
     } catch (error) {
         res.status(500).send({ message: 'Server error' });

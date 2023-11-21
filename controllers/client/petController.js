@@ -5,7 +5,7 @@ const Pet = require("../../models/pet");
 exports.pet_list = asyncHandler(async (req, res) => {
     try {
         console.log(req.user._id)
-        const pets = await Pet.find({owner: req.user._id})
+        const pets = await Pet.find({owner: req.user.client})
         .select("pet_name breed gender")
                 
       

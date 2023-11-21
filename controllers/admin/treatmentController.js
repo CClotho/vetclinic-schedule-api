@@ -10,13 +10,13 @@ exports.create_treatment = asyncHandler(async (req, res) => {
   console.log('Inside create_treatment. Request body:', req.body);
 
 
-  const avail =  "true";
-  const { name, price, description } = req.body;
+ // const avail =  "true";
+  const { name, price, description , availability} = req.body;
   const newTreatment = new Treatment({
     name,
     price,
     description,
-    availability: avail,
+    availability,
   });
 
   //io.emit('new-treatment', newTreatment);
@@ -28,7 +28,7 @@ exports.create_treatment = asyncHandler(async (req, res) => {
 
 exports.edit_treatment = asyncHandler(async (req, res) => {
   try {
-      const { _id, name, price, description } = req.body; //directly from the form
+      const { _id, name, price, description, availability } = req.body; //directly from the form
       //const { _id, name, price, description } = req.body.updatedData; //  form values passed the destructured from the object
 
 
@@ -47,6 +47,9 @@ exports.edit_treatment = asyncHandler(async (req, res) => {
     }
     if (description !== undefined) {
         treatmentService.description = description;
+    }
+    if (availability !== undefined) {
+      treatmentService.availability = availability;
     }
       await treatmentService.save();
 

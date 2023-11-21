@@ -7,6 +7,7 @@ const passport = require("passport");
 
 const appointment_controller = require("../controllers/client/appointmentController");
 const pet_controller = require("../controllers/client/petController");
+const client_controller = require("../controllers/client/profileController");
 
 
 //POST request for creating new appointment for a client through form
@@ -24,6 +25,23 @@ validate,
 pet_controller.pet_list)
 
 
+// Get todays appointment in queue  ( fetch all appointments including other client appointments for today)
+
+router.get("/appointments/today/queue",
+passport.authenticate('jwt', { session: false }), 
+appointment_controller.appointment_today_queue)
+
+//Get client's profile
+router.get('/profile',
+passport.authenticate('jwt', { session: false }),
+ client_controller.get_profile)
+
+
+ router.get("/appointments/pending", 
+ passport.authenticate('jwt', { session: false }),
+ appointment_controller.get_pending_appointments)
+
+
 
 /* Get specific pet of the client
 router.get("/pets/:id", pet_controller.pet_list) */
@@ -34,13 +52,8 @@ router.get("appointments/today", appointment_controller.appointments_today_list)
 
 // FOR PROFILE
 
-//Get client's profile
-router.get('/profile', client_controller.display_profile)
 
 
-// Get todays appointment in queue  ( fetch all appointments including other client appointments for today)
-
-router.get("appointments/today/queue", appointment_controller.appointment_today_queue)
 
 // GET all clients appointments that are approved for the week sorted by date
 //add month filter

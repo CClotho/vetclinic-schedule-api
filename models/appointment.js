@@ -28,9 +28,9 @@ const Appointment = new Schema({
     notes: {type: String}, // can be use for reschedule
     priority: {type: String, enum:["High", "Low", "Medium"]}, // should I just edit this in front end?
     status: {type: String, enum:['pending', 'approved', 'declined', 'started', 'finished','cancelled', 'noShow', 'reschedule'], default: "pending"},
-    queuePosition: { type: Number, default: null },
+    queuePosition: { type: Number, default: null, index: true },
     estimatedEndTime: { type: Date, default: null },
-    arrivalTime: { type: Date,  default: Date.now },
+    arrivalTime: { type: Date,  default: Date.now , index: true},
     startTime: {type: Number, default: null},
     duration: {type: Number, default: null  },
     deletedAt: {type: Date, default: null},

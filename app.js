@@ -49,6 +49,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Passport JWT strategy
 const User = require('./models/user');
+const Client = require('./models/client');
+
 let opts = {
   jwtFromRequest: ExtractJwt.fromExtractors([(req) => req?.cookies?.jwt]),
   secretOrKey: process.env.S_KEY,
@@ -56,16 +58,29 @@ let opts = {
 
 passport.use(new JwtStrategy(opts, async (jwt_payload, done) => {
   try {
-    const user = await User.findOne({ _id: jwt_payload.id, role: jwt_payload.role });
-    if (user) {
-      return done(null, user);
-    } else {
+    const user = await User.findOne({ _id: jwt_payload.id });
+    if (!user) {
       return done(null, false);
     }
+
+    if (jwt_payload.client) {
+      const client = await Client.findOne({ _id: jwt_payload.client });
+      if (!client) {
+        // If client ID is in JWT but no client is found, just pass the user
+        return done(null, user);
+      }
+      // Attach the client object directly to the user
+      user.client = client;
+    }
+
+    // Directly pass the user object
+    return done(null, user);
+
   } catch (err) {
     return done(err, false);
   }
 }));
+
 
 app.use(passport.initialize());
 

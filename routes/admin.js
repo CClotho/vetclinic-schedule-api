@@ -12,7 +12,7 @@ const multer = require('multer');
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
-const {updateStatusValidation} = require("../middlewares/appointmentStatusValidator")
+const {updateStatusValidation, updateAppointmentValidation} = require("../middlewares/appointmentStatusValidator")
 const {petSizeValidation} = require("../middlewares/petSizeValidation")
 const {ensureRole}= require("../middlewares/checkRole")
 const {validate} =  require('../middlewares/validator'); // validate for in general extracting errors from the process
@@ -94,10 +94,10 @@ treatment_controller.delete_treatment);
 
 
 // POST create a new pet and add it on the client's profile
+//upload.single('pet_photo'),
 router.post("/pet/create",
 passport.authenticate('jwt', { session: false }), 
 ensureRole("doctor"),
-upload.single('pet_photo'),
 PetValidationRules(),
 validate,
 pet_controller.create_pet) 
@@ -173,22 +173,27 @@ appointment_controller.update_appointment_status)
 
 // Create new client, delete, update
 
-//GET list of clients profile
 
+
+// Specific route with parameter should come first
+router.get("/clients/profile/:id",
+  passport.authenticate('jwt', { session: false }), 
+  ensureRole("doctor"),
+  client_controller.get_client_ids);
+
+// Then the more general route
 router.get("/clients/profile", 
-passport.authenticate('jwt', { session: false }), 
-ensureRole("doctor"),
-client_controller.get_clients)
+  passport.authenticate('jwt', { session: false }), 
+  ensureRole("doctor"),
+  client_controller.get_clients);
 
-
-
+// Other routes
 router.get("/clients/summary", 
-passport.authenticate('jwt', { session: false }), 
-ensureRole("doctor"),
-client_controller.get_client_id_and_pets)
+  passport.authenticate('jwt', { session: false }), 
+  ensureRole("doctor"),
+  client_controller.get_client_id_and_pets);
 
-//GET a specific profile client based on the url iq or id passed by / <ClientProfile/> component renderer
-router.get("/client/profile/:id", client_controller.get_client)
+
 
 //GET list of pets of a client
 router.get("/client/profile/:id/pets", client_controller.get_client_pets) //remove this and add retrieve the list of pet of a client together with client/profile
@@ -198,6 +203,31 @@ router.get("/client/profile/:id/pet/:id", client_controller.get_client_pet)
 
 // POST delete a client
 router.post("/client/:id/delete", client_controller.delete_client)
+
+
+// updating appointment queues
+
+router.post("/appointment/update/queue", 
+passport.authenticate('jwt', { session: false }), 
+ensureRole("doctor"),
+updateAppointmentValidation,
+appointment_controller.appointment_update)
+
+
+
+router.post("/appointments/delete/appointment/queue", 
+passport.authenticate('jwt', { session: false }), 
+ensureRole("doctor"),
+appointment_controller.delete_queue_appointment)
+
+
+// updating appointment form
+router.post("/appointments/update/appointment", 
+passport.authenticate('jwt', { session: false }), 
+ensureRole("doctor"),
+appointmentValidationRules(), 
+validate,  
+appointment_controller.appointment_form_update)
 
 
 // FOR HANDLING PETS

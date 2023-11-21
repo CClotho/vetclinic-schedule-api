@@ -7,7 +7,7 @@ const PetSchema = new Schema({
    type: {type: String, required:true, enum: ['dog', 'cat', 'rabbit', 'bird', 'parrot', 'hamster']},
    breed: {type: String, required: true},
    gender: { type: String, enum:["Male", "Female"], required: true},
-   owner: {type: Schema.Types.ObjectId, ref: 'Owner', required: true},
+   owner: {type: Schema.Types.ObjectId, ref: 'Client', required: true},
    pet_photo: {
       data: Buffer,
       contentType: String,

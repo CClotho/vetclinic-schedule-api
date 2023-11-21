@@ -98,18 +98,23 @@ exports.create_grooming = asyncHandler(async (req, res) => {
 
 exports.edit_grooming = asyncHandler(async (req, res) => {
     try {
-        //const { id } = req.params; I can just add this if my client side router is :id dynamically as well but il just display the services in one page
+        const { _id, name, price, description, availability } = req.body;
 
-        const grooming = await Grooming.findById(req.body.id);
+        const grooming = await Grooming.findById(_id);
 
         if (!grooming) {
             return res.status(404).send({ message: 'Grooming service not found' });
         }
 
         // Update fields if they are provided in the request
-        if (req.body.name) grooming.name = req.body.name;
-        if (req.body.sizes) grooming.sizes = req.body.sizes;
-        if (req.body.description) grooming.description = req.body.description;
+        if (name !== undefined) grooming.name = name;
+        if (description !== undefined) grooming.description = description;
+        if (price !== undefined) {
+            grooming.price = price;
+        }
+        if (availability !== undefined) {
+            grooming.availability = availability;
+          }
 
         await grooming.save();
 
