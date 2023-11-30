@@ -19,7 +19,7 @@ const {validate} =  require('../middlewares/validator'); // validate for in gene
 const {TreatmentValidationRules} = require("../middlewares/treatmentValidation") // For treatment service validation
 const {GroomingValidationRules, GroomingDeleteValidationRules} = require("../middlewares/groomingValidation")
 const {PetValidationRules} = require("../middlewares/petValidation");
-const { appointmentValidationRules } = require("../middlewares/appointmentValidation");
+const { appointmentValidationRules,  appointmentCreateValidation } = require("../middlewares/appointmentValidation");
 const DoctorValidationRules = require("../middlewares/doctorValidation")
 // In main app.use("/admin", adminRouter)
 
@@ -131,7 +131,7 @@ grooming_controller.create_petSize)
 
 //POST request for creating new appointment for a client through form
 router.post("/appointment/create",
-appointmentValidationRules(), 
+appointmentCreateValidation(), 
 validate,  
 appointment_controller.create_appointment)
 
