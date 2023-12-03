@@ -19,7 +19,7 @@ exports.create_client_appointment = asyncHandler(async (req, res) => {
 
     try {
         console.log("Received data:", req.body);
-        const { pet, date, doctor, service_type, services,  status } = req.body;
+        const { pet, date, service_type, services,  status,size } = req.body;
         
       
         // Extract client ID from JWT
@@ -28,26 +28,24 @@ exports.create_client_appointment = asyncHandler(async (req, res) => {
         const clientId = await Client.findOne({_id: req.user.client._id})
         console.log(clientId) 
         // Format services array
-        const formattedServices = services.map(service => ({
-            serviceId: service.serviceId,
-            serviceType: service_type,
-            chosenSize: service_type === 'grooming' ? service.chosenSize : null
-        }));
+    
 
         const newAppointment = new Appointment({
-            client:  req.user.client,//clientId._id, 
-            pet,
-            date,
-            doctor,
-            service_type,
-            services: formattedServices,
-            status,
+            client: req.user.client,
+            pet: pet,
+            date:date,
+            service_type: service_type,
+            services: services,
+            status: status,
             // Add other fields if necessary
         });
 
+        if (service_type === 'grooming') {
+            newAppointment.size = size;
+        }
+  
         await newAppointment.save();
-         // Optionally emit an event to notify admins of a new pending appointment
-        //io.emit('newPendingAppointment', newAppointment);
+ 
 
         res.status(201).json({ message: 'Appointment request submitted successfully!', appointment: newAppointment });
     } catch (error) {
@@ -115,30 +113,18 @@ exports.appointment_today_queue = asyncHandler(async (req, res) => {
             .populate([
                 { path: 'client', select: 'first_name last_name' }, // Adjust as per your Client schema
                 { path: 'pet', select: 'pet_name' }, // Adjust as per your Pet schema
-                { path: 'doctor', select: 'first_name' } // Adjust as per your Doctor schema
+                { path: 'doctor', select: 'first_name' },
+                { path: 'services' },// Populate services as ObjectIds
+                { path: 'size' }, // Adjust as per your Doctor schema
+        
             ])
-            .sort({ queuePosition: 1, arrivalTime: 1 }) // Sort by queuePosition and arrivalTime
             .lean();
         
-        
-            for (let appointment of appointments) {
-                for (let service of appointment.services) {
-                    // Manually populating serviceId based on the serviceType
-                    if (service.serviceType === 'grooming') {
-                        service.serviceId = await Grooming.findById(service.serviceId).lean();
-                        if (service.chosenSize) {
-                            service.chosenSize = await PetSize.findById(service.chosenSize).lean();
-                        }
-                    } else if (service.serviceType === 'treatment') {
-                        service.serviceId = await Treatment.findById(service.serviceId).lean();
-                    }
-                }
-            }
 
             appointments.forEach(appointment => {
                 console.log('Appointment client ID:', appointment.client._id.toString());
                 console.log('Logged-in client ID:', req.user.client._id.toString());
-                appointment.isClientAppointment = appointment.client._id.toString() === req.user.client.toString();
+                appointment.isClientAppointment = appointment.client._id.toString() === req.user.client.toString();gc
                
             });
             
@@ -171,30 +157,14 @@ exports.appointment_today_queue = asyncHandler(async (req, res) => {
 
 // Fetch pending appointments
 exports.get_pending_appointments = asyncHandler(async (req, res) => {
-    let pendingAppointments = await Appointment.find({
-        client: req.user.client._id, 
-        status: 'pending'
-      })
-        .populate({ path: 'client', select: 'first_name last_name' }) // Adjust as per your Client schema
-        .populate({ path: 'pet', select: 'pet_name' }) 
-        .populate('services.serviceId') // Initially populate serviceId
+     let pendingAppointments = await Appointment.find({ status: 'pending' })
+        .populate({ path: 'client', select: 'first_name last_name' })
+        .populate({ path: 'pet', select: 'pet_name' })
+        .populate({ path: 'services' }) // Populate services as ObjectIds
+        .populate({ path: 'size' }) // Populate size for grooming
         .lean();
 
-    for (let appointment of pendingAppointments) {
-        for (let service of appointment.services) {
-            if (service.serviceType === 'grooming') {
-                // Populate chosenSize for grooming services
-                if (service.chosenSize) {
-                    service.chosenSize = await PetSize.findById(service.chosenSize).lean();
-                }
-                // Populate service details from Grooming model
-                service.serviceId = await Grooming.findById(service.serviceId).lean();
-            }
-            else if (service.serviceType === 'treatment') {
-                // Populate service details from Treatment model
-                service.serviceId = await Treatment.findById(service.serviceId).lean();
-            }
-        }
-    }
+  
+
     res.json(pendingAppointments);
 })
