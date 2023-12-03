@@ -8,7 +8,7 @@ const groomingSchema = new Schema({
     sizes: [{type: Schema.Types.ObjectId, ref: 'PetSize' }] , // Reference to PetSize
     price: { type: Number },
     description: { type: String },
-    availability: {type: String,  enum:['true', 'false']}
+    availability: {type: Boolean}
 });
 
 module.exports = mongoose.model('grooming', groomingSchema);

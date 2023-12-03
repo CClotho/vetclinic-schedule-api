@@ -53,7 +53,7 @@ exports.edit_treatment = asyncHandler(async (req, res) => {
     }
       await treatmentService.save();
 
-      res.send({ message: 'Treatment service updated successfully!' });
+      res.send({ message: 'Treatment service updated successfully!' , treatment: treatmentService });
   } catch (error) {
       res.status(500).send({ message: 'Server error' });
   }

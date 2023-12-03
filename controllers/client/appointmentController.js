@@ -111,11 +111,10 @@ exports.appointment_today_queue = asyncHandler(async (req, res) => {
             })
 
             .populate([
-                { path: 'client', select: 'first_name last_name' }, // Adjust as per your Client schema
-                { path: 'pet', select: 'pet_name' }, // Adjust as per your Pet schema
+                { path: 'client', select: 'first_name last_name' }, 
+                { path: 'pet', select: 'pet_name' }, 
                 { path: 'doctor', select: 'first_name' },
-                { path: 'services' },// Populate services as ObjectIds
-                { path: 'size' }, // Adjust as per your Doctor schema
+                { path: 'services' },
         
             ])
             .lean();
