@@ -96,7 +96,16 @@ exports.appointment_update = asyncHandler(async (req, res) => {
             appointment.duration = duration;
         } else if (status === 'started') {
             appointment.startTime = new Date();
+        }else if(status === 'paused') {
+            // Calculate and update duration up to the pause point, if the appointment had started
+            if (appointment.startTime) {
+                const now = new Date();
+                const elapsed = (now - appointment.startTime) / 1000; // duration in seconds
+                appointment.duration += elapsed; // add elapsed time to total duration
+                appointment.pausedDuration = appointment.duration; // store the total duration up to pause
+            }
         }
+       
 
        
 
@@ -227,15 +236,14 @@ exports.appointment_today_queue = asyncHandler(async (req, res) => {
             $gte: today,
             $lt: tomorrow
         },
-        $or: [{ status: "approved" }, { status: "started" }, { status: "started" }, { status: "finished" }]
+        $or: [{ status: "approved" }, { status: "started" }, { status: "started" }, { status: "finished" }, { status: "paused" },]
     })
     .populate([
-        { path: 'client', select: 'first_name last_name' }, // Adjust as per your Client schema
-        { path: 'pet', select: 'pet_name' }, // Adjust as per your Pet schema
+        { path: 'client', select: 'first_name last_name' }, 
+        { path: 'pet', select: 'pet_name' }, 
         { path: 'doctor', select: 'first_name' },
-        { path: 'services' },// Populate services as ObjectIds
-        { path: 'size' }, // Adjust as per your Doctor schema
-
+        { path: 'services' },
+        { path: 'size' }, 
     ])
     .lean();
 
@@ -252,4 +260,23 @@ exports.appointment_today_queue = asyncHandler(async (req, res) => {
          groomingAppointments,
          treatmentAppointments
      });
+});
+
+exports.appointments_finished_list = asyncHandler(async (req, res) => {
+    
+
+
+    const appointments = await Appointment.find({  
+        $or: [{ status: "noShow" }, { status: "finished" }, { status: "cancelled" }, { status: "reschedule" }]
+    })
+    .populate([
+        { path: 'client', select: 'first_name last_name' }, 
+        { path: 'pet', select: 'pet_name' }, 
+        { path: 'doctor', select: 'first_name' },
+        { path: 'services' },
+        { path: 'size' }, 
+    ])
+    .lean();
+
+    res.json(appointments);
 });

@@ -105,7 +105,7 @@ pet_controller.create_pet)
 //POST update existing pet
 router.put("/pet/:id/update",
  passport.authenticate('jwt', { session: false }), 
-ensureRole("admin"), 
+ensureRole("doctor"), 
 PetValidationRules(), 
 validate,
 pet_controller.update_pet)
@@ -115,7 +115,7 @@ pet_controller.update_pet)
 // POST delete a pet
 router.delete("/pet/delete/:id",
 passport.authenticate('jwt', { session: false }), 
-ensureRole("admin"), 
+ensureRole("doctor"), 
  pet_controller.delete_pet)
 
 
@@ -141,6 +141,11 @@ router.get("/appointments/today/queue",
 passport.authenticate('jwt', { session: false }), 
 ensureRole("doctor"), 
 appointment_controller.appointment_today_queue) // same call with admin's appointments for today
+
+router.get("/appointments/list",
+passport.authenticate('jwt', { session: false }), 
+ensureRole("doctor"), 
+appointment_controller.appointments_finished_list) 
 
 
 //GET all clients appointments that are approved for today sorted by date

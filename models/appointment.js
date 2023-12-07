@@ -28,12 +28,13 @@ const Appointment = new Schema({
     size: { type: Schema.Types.ObjectId,   ref: 'PetSize',  required: function() { return      this.service_type === 'grooming'; }},
     notes: {type: String}, // can be use for reschedule
     priority: {type: String, enum:["High", "Low", "Medium"]}, 
-    status: {type: String, enum:['pending', 'approved', 'declined', 'started', 'finished','cancelled', 'noShow', 'reschedule'], default: "pending"},
+    status: {type: String, enum:['pending', 'approved', 'declined', 'started', 'finished','cancelled', 'noShow', 'reschedule', 'paused'], default: "pending"},
     queuePosition: { type: Number, default: null, index: true },
     estimatedEndTime: { type: Date, default: null },
     arrivalTime: { type: Date,  default: Date.now , index: true},
     startTime: {type: Number, default: null},
     duration: {type: Number, default: null  },
+    pausedDuration: {type: Number, default: null  },
     deletedAt: {type: Date, default: null},
 }, {
     timestamps: true 
