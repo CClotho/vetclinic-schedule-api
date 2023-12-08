@@ -267,7 +267,7 @@ exports.appointments_finished_list = asyncHandler(async (req, res) => {
 
 
     const appointments = await Appointment.find({  
-        $or: [{ status: "noShow" }, { status: "finished" }, { status: "cancelled" }, { status: "reschedule" }]
+        $or: [{ status: "noShow" }, { status: "finished" }, { status: "cancelled" }, { status: "reschedule" }, { status: "pending" }, { status: "approved" }]
     })
     .populate([
         { path: 'client', select: 'first_name last_name' }, 
@@ -276,6 +276,7 @@ exports.appointments_finished_list = asyncHandler(async (req, res) => {
         { path: 'services' },
         { path: 'size' }, 
     ])
+    .sort({ date: -1 })  // This will sort the appointments by the 'date' field in descending order
     .lean();
 
     res.json(appointments);
