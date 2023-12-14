@@ -236,7 +236,12 @@ exports.appointment_today_queue = asyncHandler(async (req, res) => {
             $gte: today,
             $lt: tomorrow
         },
-        $or: [{ status: "approved" }, { status: "started" }, { status: "started" }, { status: "finished" }, { status: "paused" },]
+        $or: [
+            { status: "approved" },
+            { status: "started" },
+            { status: "finished" },
+            { status: "paused" },
+        ]
     })
     .populate([
         { path: 'client', select: 'first_name last_name' }, 
@@ -248,12 +253,20 @@ exports.appointment_today_queue = asyncHandler(async (req, res) => {
     .lean();
 
     
-
-
-
-     // Separating grooming and treatment appointments
-     const groomingAppointments = appointments.filter(appointment => appointment.service_type === 'grooming');
-     const treatmentAppointments = appointments.filter(appointment => appointment.service_type === 'treatment');
+        //sorting appointments
+     const sortedAppointments = appointments.sort((a, b) => {
+        if (a.status === 'finished' && b.status !== 'finished') {
+            return 1; // a comes after b
+        }
+        if (b.status === 'finished' && a.status !== 'finished') {
+            return -1; // a comes before b
+        }
+        return 0; // no change in order
+    });
+    
+    // Separating grooming and treatment appointments
+    const groomingAppointments = sortedAppointments.filter(appointment => appointment.service_type === 'grooming');
+    const treatmentAppointments = sortedAppointments.filter(appointment => appointment.service_type === 'treatment');
  
      // Respond with the separated lists
      res.json({

@@ -80,79 +80,60 @@ exports.appointments_today_list = asyncHandler(async (req, res) => {
     res.json(appointments);
 });
 
-
 exports.appointment_today_queue = asyncHandler(async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
     try {
-       
-    
-        const clientAppointment = await Appointment.findOne({
+        // Find all appointments for the client for today
+        const appointments = await Appointment.find({
             client: req.user.client._id,
             date: {
                 $gte: today,
                 $lt: tomorrow
             },
-            status: "approved",
+            $or: [
+                { status: "approved" },
+                { status: "started" },
+                { status: "finished" },
+                { status: "paused" },
+            ]
         })
-        console.log(clientAppointment)
-    
-        if (clientAppointment) {
-            const appointments = await Appointment.find({
-                date: {
-                    $gte: today,
-                    $lt: tomorrow
-                },
-                $or: [{ status: "approved" }, { status: "started" }, { status: "started" }, { status: "finished" },  { status: "paused" }]
-            })
+        .populate([
+            { path: 'client', select: 'first_name last_name' }, 
+            { path: 'pet', select: 'pet_name' }, 
+            { path: 'doctor', select: 'first_name' },
+            { path: 'services' },
+        ])
+        .lean();
 
-            .populate([
-                { path: 'client', select: 'first_name last_name' }, 
-                { path: 'pet', select: 'pet_name' }, 
-                { path: 'doctor', select: 'first_name' },
-                { path: 'services' },
-        
-            ])
-            .lean();
-        
-
-            appointments.forEach(appointment => {
-                console.log('Appointment client ID:', appointment.client._id.toString());
-                console.log('Logged-in client ID:', req.user.client._id.toString());
-                appointment.isClientAppointment = appointment.client._id.toString() === req.user.client.toString();
-               
+        if (appointments.length === 0) {
+            return res.status(200).json({
+                message: 'No appointments for today',
+                groomingAppointments: [],
+                treatmentAppointments: []
             });
-            
-            const modifiedAppointments = appointments.map(appointment => ({
-                ...appointment,
-                isClientAppointment: appointment.client._id.toString() === req.user.client._id.toString()
-            }));
-            
-            // Separating grooming and treatment appointments
-            const groomingAppointments = modifiedAppointments.filter(appointment => appointment.service_type === 'grooming');
-            const treatmentAppointments = modifiedAppointments.filter(appointment => appointment.service_type === 'treatment');
- 
-             // Respond with the separated lists
-            res.json({
-                groomingAppointments,
-                treatmentAppointments
-            });
-        } else {
-            res.status(403).send('You currently do not have an appointment for today.');
         }
 
+        // Separate and sort grooming and treatment appointments
+        const groomingAppointments = appointments.filter(appointment => appointment.service_type === 'grooming');
+        const treatmentAppointments = appointments.filter(appointment => appointment.service_type === 'treatment');
+
+        // Return only the appointment types that exist for the client
+        res.json({
+            groomingAppointments: groomingAppointments.length > 0 ? groomingAppointments : [],
+            treatmentAppointments: treatmentAppointments.length > 0 ? treatmentAppointments : [],
+        });
+
+    } catch (err) {
+        console.error(`Error fetching appointments queue today: ${err}`);
+        res.status(500).send(`Error fetching appointments queue today: ${err}`);
     }
-    catch(err) {
-        console.log(err)
-        res.status(404).send(`Error fetching appointments queue today: ${ err}`);
-    }
-    
-   
 });
+
 
 // Fetch pending appointments
 exports.get_pending_appointments = asyncHandler(async (req, res) => {
@@ -167,3 +148,34 @@ exports.get_pending_appointments = asyncHandler(async (req, res) => {
 
     res.json(pendingAppointments);
 })
+
+
+exports.appointment_history = asyncHandler(async (req, res) => {
+    try {
+        const appointments = await Appointment.find({
+            client: req.user.client._id, // Condition for matching the client ID
+            $or: [
+                { status: "noShow" },
+                { status: "finished" },
+                { status: "cancelled" },
+                { status: "reschedule" },
+                { status: "pending" },
+                { status: "approved" }
+            ] // OR condition for matching any of the statuses
+        })
+        .populate([
+            { path: 'client', select: 'first_name last_name' }, 
+            { path: 'pet', select: 'pet_name' }, 
+            { path: 'doctor', select: 'first_name' },
+            { path: 'services' },
+            { path: 'size' }, 
+        ])
+        .sort({ date: -1 })  // This will sort the appointments by the 'date' field in descending order
+        .lean();
+
+        res.json(appointments);
+    } catch (err) {
+        console.error('Error fetching appointment history:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+});

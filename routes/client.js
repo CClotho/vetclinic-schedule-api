@@ -31,6 +31,10 @@ router.get("/appointments/today/queue",
 passport.authenticate('jwt', { session: false }), 
 appointment_controller.appointment_today_queue)
 
+router.get("/appointments/history",
+passport.authenticate('jwt', { session: false }), 
+appointment_controller.appointment_history)
+
 //Get client's profile
 router.get('/profile',
 passport.authenticate('jwt', { session: false }),

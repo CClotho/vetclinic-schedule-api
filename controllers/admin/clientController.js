@@ -18,7 +18,7 @@ exports.get_client_ids = asyncHandler(async (req, res) => {
         const client = await Client.findOne({ _id: clientId })
         .populate({path:'pets', select: "pet_name breed gender"})
 
-        const appointment = await Appointment.find()
+       
             
 
         console.log(client);

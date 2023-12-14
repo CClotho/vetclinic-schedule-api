@@ -6,8 +6,8 @@ const Doctor =  require('../models/doctor');
 const Client =  require('../models/client');
 const { UserSignUpValidationRules, validate } = require('../middlewares/validator');
 const bcrypt = require('bcryptjs');
-const {generateToken} = require('../middlewares/generateToken');
-const client = require('../models/client');
+const {generateToken} = require('../middlewares/generateToken')
+
 
 // create reset password for client and admin, by getting old password then new password for verification then hash it
 
@@ -116,7 +116,7 @@ router.post('/login', async (req, res) => {
 
 
 
-router.get('/me/profile', passport.authenticate('jwt', { session: false }), async (req, res) => {
+router.get('/me/profile', passport.authenticate('jwt', { session: false }), validate, async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
 
     try {
@@ -134,7 +134,7 @@ router.get('/me/profile', passport.authenticate('jwt', { session: false }), asyn
         return res.status(500).json({ error: `An error occurred: ${error.message}` });
     }
 });
-router.get('/me', passport.authenticate('jwt', { session: false }), async (req, res) => {
+router.get('/me', passport.authenticate('jwt', { session: false }), validate, async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
 
     // Access user data directly from req.user
