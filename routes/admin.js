@@ -26,6 +26,8 @@ const DoctorValidationRules = require("../middlewares/doctorValidation")
 
 //FOR DOCTOR PROFILE
 
+//router.use(passport.authenticate('jwt', {session:false}))
+
 router.post('/add/doctor',
 passport.authenticate('jwt', { session: false }),
 ensureRole("doctor"),

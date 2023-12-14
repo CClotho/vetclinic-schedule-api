@@ -107,7 +107,7 @@ exports.appointment_today_queue = asyncHandler(async (req, res) => {
                     $gte: today,
                     $lt: tomorrow
                 },
-                $or: [{ status: "approved" }, { status: "started" }, { status: "started" }, { status: "finished" }]
+                $or: [{ status: "approved" }, { status: "started" }, { status: "started" }, { status: "finished" },  { status: "paused" }]
             })
 
             .populate([
@@ -123,7 +123,7 @@ exports.appointment_today_queue = asyncHandler(async (req, res) => {
             appointments.forEach(appointment => {
                 console.log('Appointment client ID:', appointment.client._id.toString());
                 console.log('Logged-in client ID:', req.user.client._id.toString());
-                appointment.isClientAppointment = appointment.client._id.toString() === req.user.client.toString();gc
+                appointment.isClientAppointment = appointment.client._id.toString() === req.user.client.toString();
                
             });
             
