@@ -66,13 +66,13 @@ exports.delete_treatment = asyncHandler(async (req, res) => {
 
       const treatmentService = await Treatment.findById(id);
 
-      if (!treatmentService) {
+      if (!treatmentService === 'undefined') {
           return res.status(404).send({ message: 'Treatment service not found' });
       }
 
-      await treatmentService.remove();
+      const deleteTreatment = await Treatment.findByIdAndDelete(id)
 
-      res.send({ message: 'Treatment service deleted successfully!' });
+      res.send({ message: 'Treatment service deleted successfully!' , treatment: deleteTreatment});
   } catch (error) {
       res.status(500).send({ message: 'Server error' });
   }

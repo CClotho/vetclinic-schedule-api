@@ -21,6 +21,15 @@ const TreatmentValidationRules = () => {
   ];
 }
 
+
+const TreatmentDeleteValidationRules = () => {
+  return [
+    body('id')
+      .notEmpty().withMessage('ID is required.')
+      .isMongoId().withMessage('ID is not a valid MongoDB ID.')
+  ];
+}
 module.exports = {
-    TreatmentValidationRules
+    TreatmentValidationRules,
+    TreatmentDeleteValidationRules
 }

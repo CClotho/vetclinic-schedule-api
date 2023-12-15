@@ -16,7 +16,7 @@ const {updateStatusValidation, updateAppointmentValidation} = require("../middle
 const {petSizeValidation} = require("../middlewares/petSizeValidation")
 const {ensureRole}= require("../middlewares/checkRole")
 const {validate} =  require('../middlewares/validator'); // validate for in general extracting errors from the process
-const {TreatmentValidationRules} = require("../middlewares/treatmentValidation") // For treatment service validation
+const {TreatmentValidationRules, TreatmentDeleteValidationRules} = require("../middlewares/treatmentValidation") // For treatment service validation
 const {GroomingValidationRules, GroomingDeleteValidationRules} = require("../middlewares/groomingValidation")
 const {PetValidationRules} = require("../middlewares/petValidation");
 const { appointmentValidationRules,  appointmentCreateValidation } = require("../middlewares/appointmentValidation");
@@ -62,7 +62,7 @@ validate, grooming_controller.edit_grooming)
 
 // Delete Grooming service
 
-router.delete("/service/grooming/delete",
+router.post("/service/delete/grooming",
 passport.authenticate('jwt', { session: false }), 
 ensureRole("doctor"), 
 GroomingDeleteValidationRules(),
@@ -76,7 +76,7 @@ grooming_controller.delete_grooming);
 router.post("/service/create/treatment",
 passport.authenticate('jwt', { session: false }), // This ensures the request is authenticated
 ensureRole("doctor"), // This ensures that only admin have access to process this
-TreatmentValidationRules(),validate,
+TreatmentDeleteValidationRules(),validate,
 treatment_controller.create_treatment)
 
 // PUT Edit a treatment 
@@ -87,7 +87,7 @@ TreatmentValidationRules(),
 validate, treatment_controller.edit_treatment)
 
 // DELETE a treatment
-router.delete("/service/treatment/delete", 
+router.post("/service/delete/treatment", 
 passport.authenticate('jwt', { session: false }),
 ensureRole("doctor"), 
 treatment_controller.delete_treatment);

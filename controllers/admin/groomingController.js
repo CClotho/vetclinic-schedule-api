@@ -131,13 +131,13 @@ exports.delete_grooming = asyncHandler(async (req, res) => {
 
         const groomingService = await Grooming.findById(id);
 
-        if (!groomingService) {
+        if (!groomingService === 'undefined') {
             return res.status(404).send({ message: 'Grooming service not found' });
         }
 
-        await groomingService.remove();
+        const deleteGrooming =  await Grooming.findByIdAndDelete(id)
 
-        res.send({ message: 'Grooming service deleted successfully!' });
+        res.send({ message: 'Grooming service deleted successfully!', grooming: deleteGrooming });
     } catch (error) {
         res.status(500).send({ message: 'Server error' });
     }
