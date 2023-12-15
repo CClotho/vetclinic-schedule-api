@@ -53,19 +53,19 @@ exports.create_pet = asyncHandler(async(req, res) => {
   // Link in client side
   exports.update_pet = asyncHandler(async (req, res) => {
     try {
-        const { id } = req.params;
-
-        const pet = await Pet.findById(id);
+        const { _id, pet_name, breed, gender, type } = req.body;
+        console.log(_id)
+        const pet = await Pet.findById(_id);
 
         if (!pet) {
             return res.status(404).send({ message: 'Pet not found' });
         }
 
         // Update fields if they are provided in the request
-        if (req.body.pet_name) pet.pet_name = req.body.pet_name;
-        if (req.body.breed) pet.breed = req.body.breed;
-        if (req.body.gender) pet.gender = req.body.gender;
-        if(req.body.type) pet.gender = req.body.type
+        if (pet_name ) pet.pet_name = pet_name;
+        if (breed) pet.breed = breed;
+        if (gender) pet.gender = gender;
+        if(type) pet.type = type
         // If there's a new photo uploaded, update it. 
         // This assumes you're using something like multer for file uploads.
         if (req.file) {
@@ -77,7 +77,7 @@ exports.create_pet = asyncHandler(async(req, res) => {
 
         res.send({ message: 'Pet updated successfully!', pet });
     } catch (error) {
-        res.status(500).send({ message: 'Server error' });
+        res.status(500).send({ message: 'Server error' ,});
     }
 });
   
@@ -85,18 +85,18 @@ exports.create_pet = asyncHandler(async(req, res) => {
 
 exports.delete_pet = asyncHandler(async (req, res) => {
     try {
-        const { id } = req.params;
-
+        const { id } = req.body;
+        console.log("Pet id from delete pet", id)
         const pet = await Pet.findById(id);
 
         if (!pet) {
             return res.status(404).send({ message: 'Pet not found' });
         }
 
-        await pet.remove();
+       const deletePet = await Pet.findByIdAndDelete(id)
 
-        res.send({ message: 'Pet deleted successfully!' });
+        res.send({ message: 'Pet deleted successfully!', pet: deletePet });
     } catch (error) {
-        res.status(500).send({ message: 'Server error' });
+        res.status(500).send({ message: 'Server error', error: error.message });
     }
 });

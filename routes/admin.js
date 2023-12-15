@@ -105,7 +105,7 @@ validate,
 pet_controller.create_pet) 
 
 //POST update existing pet
-router.put("/pet/:id/update",
+router.put("/pets/pet/edit",
  passport.authenticate('jwt', { session: false }), 
 ensureRole("doctor"), 
 PetValidationRules(), 
@@ -115,7 +115,7 @@ pet_controller.update_pet)
 
 
 // POST delete a pet
-router.delete("/pet/delete/:id",
+router.post("/pets/pet/delete",
 passport.authenticate('jwt', { session: false }), 
 ensureRole("doctor"), 
  pet_controller.delete_pet)
@@ -155,7 +155,7 @@ appointment_controller.appointments_finished_list)
 
 router.get("/appointments/today", 
 passport.authenticate('jwt', { session: false }), 
-ensureRole("admin"), 
+ensureRole("doctor"), 
 appointment_controller.appointments_today_list)
 
 // get pending qppointments 

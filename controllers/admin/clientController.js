@@ -16,7 +16,7 @@ exports.get_client_ids = asyncHandler(async (req, res) => {
         }
         
         const client = await Client.findOne({ _id: clientId })
-        .populate({path:'pets', select: "pet_name breed gender"})
+        .populate({path:'pets', select: "pet_name breed gender type"})
 
        
             
@@ -41,7 +41,7 @@ exports.get_client_id_and_pets = asyncHandler(async (req, res) => {
         
         const clientsInfo = await Client.find({})
         .select('first_name last_name')
-        .populate({path:'pets', select: "pet_name breed gender"})
+        .populate({path:'pets', select: "pet_name breed gender type"})
         
         
         res.status(200).json(clientsInfo);
@@ -55,7 +55,7 @@ exports.get_clients  = asyncHandler(async (req, res) => {
     
     try {
         // Fetch clients and populate the 'pets' field
-        const clients = await Client.find({}).populate({path:'pets', select: "pet_name breed gender"});
+        const clients = await Client.find({}).populate({path:'pets', select: "pet_name breed gender type"});
         
         res.status(200).json(clients);
     } catch (error) {
