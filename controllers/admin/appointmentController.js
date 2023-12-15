@@ -192,7 +192,7 @@ exports.update_appointment_status = asyncHandler(async (req, res) => {
     
        
     
-        res.json(updatedAppointment);
+        res.status(200).json({ appointment: updatedAppointment, message: "Successfully declined"});
     } catch (err) {
         console.error("Error updating appointment:", err);
         res.status(500).json({ error: err.message });
@@ -280,7 +280,15 @@ exports.appointments_finished_list = asyncHandler(async (req, res) => {
 
 
     const appointments = await Appointment.find({  
-        $or: [{ status: "noShow" }, { status: "finished" }, { status: "cancelled" }, { status: "reschedule" }, { status: "pending" }, { status: "approved" }]
+        $or: [
+            { status: "approved" },
+            { status: "started" },
+            { status: "finished" },
+            { status: "paused" },
+            { status: "declined" },
+            { status: "noShow" },
+            { status: "reschedule" },
+        ]
     })
     .populate([
         { path: 'client', select: 'first_name last_name' }, 
