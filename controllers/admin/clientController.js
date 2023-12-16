@@ -143,7 +143,52 @@ exports.get_client = asyncHandler(async(req, res) => {
     res.status(200).json({message: 'testing'})
 })
 
+// POST delete a client
+exports.delete_client = asyncHandler(async (req, res) => {
+    const { id } = req.body;
 
+    if (!id) {
+        return res.status(400).json({ message: 'Client ID is required.' });
+    }
+
+    try {
+        // Find the client
+        const client = await Client.findById(id);
+
+        if (!client) {
+            // Attempt to delete user if client not found
+            const userDeletionResult = await User.findByIdAndDelete(id);
+            if (!userDeletionResult) {
+                return res.status(404).json({ message: 'Client or User not found.' });
+            }
+
+            return res.status(200).json({ message: 'User deleted successfully.' });
+        }
+
+        // Delete all pets associated with the client (if any)
+        let petsDeletionResult = { deletedCount: 0 };
+        if (client.pets && client.pets.length > 0) {
+            petsDeletionResult = await Pet.deleteMany({ _id: { $in: client.pets } });
+        }
+
+        // Delete the client
+        const clientDeletionResult = await Client.findByIdAndDelete(id);
+
+        // Delete the user associated with the client
+        const userDeletionResult = await User.findByIdAndDelete(client.user);
+
+        // If all deletions were successful, send a success response
+        res.status(200).json({
+            message: 'Client and all associated data have been deleted successfully.',
+            petsDeleted: petsDeletionResult.deletedCount,
+            userDeleted: userDeletionResult ? 1 : 0,
+            clientDeleted: clientDeletionResult ? 1 : 0
+        });
+    } catch (error) {
+        console.error('Error deleting client and associated data:', error);
+        res.status(500).json({ message: 'Error deleting client and associated data', error: error.toString() });
+    }
+});
 
 
 
@@ -162,8 +207,4 @@ exports.delete_client_pet = asyncHandler(async(req, res) => {
     res.status(200).json({message: 'testing'})
 })
 
-// POST delete a client
-exports.delete_client = asyncHandler(async(req, res) => {
-    res.status(200).json({message: 'testing'})
-})
 

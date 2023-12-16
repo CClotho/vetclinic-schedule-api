@@ -34,6 +34,11 @@ passport.authenticate('jwt', { session: false }),
 ensureRole("doctor"), 
 client_controller.reset_password);
 
+router.post('/clients/client/delete',
+passport.authenticate('jwt', { session: false }),
+ensureRole("doctor"), 
+client_controller.delete_client);
+
 
 router.put('/clients/client/edit',
 passport.authenticate('jwt', { session: false }),
