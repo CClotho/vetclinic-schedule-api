@@ -18,7 +18,8 @@ exports.get_client_ids = asyncHandler(async (req, res) => {
         }
         
         const client = await Client.findOne({ _id: clientId })
-        .populate({path:'pets', select: "pet_name breed gender type"})
+        .populate([{path:'pets', select: "pet_name breed gender type"},
+        {path:"user", select: "username"}])
 
        
             
@@ -43,8 +44,9 @@ exports.get_client_id_and_pets = asyncHandler(async (req, res) => {
         
         const clientsInfo = await Client.find({})
         .select('first_name last_name')
-        .populate({path:'pets', select: "pet_name breed gender type"})
-        
+        .populate([{path:'pets', select: "pet_name breed gender type"},
+        {path:"user", select: "username"}])
+
         
         res.status(200).json(clientsInfo);
     } catch (error) {
@@ -104,7 +106,7 @@ exports.reset_password = asyncHandler(async(req, res)=> {
 exports.edit_client_information = asyncHandler(async(req, res) => {
 
    
-    const { _id, first_name, last_name, age, phone_number, email } = req.body;
+    const { _id, first_name, last_name, age, phone_number, email, username } = req.body;
     console.log(_id)
     try {
         // Find client by ID and update
@@ -113,6 +115,15 @@ exports.edit_client_information = asyncHandler(async(req, res) => {
             { new: true }
             
         )
+
+        const updateUsername = await User.findByIdAndUpdate(updateData.user,
+            {username: username}
+            )
+
+        
+        if(!updateUsername) {
+            return res.status(404).json({message: 'Username not found'});
+        }
 
         if (!updateData) {
             return res.status(404).json({ message: 'Client not found' });
