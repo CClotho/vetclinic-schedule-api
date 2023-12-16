@@ -155,13 +155,14 @@ exports.appointment_history = asyncHandler(async (req, res) => {
         const appointments = await Appointment.find({
             client: req.user.client._id, // Condition for matching the client ID
             $or: [
-                { status: "noShow" },
+                { status: "approved" },
+                { status: "started" },
                 { status: "finished" },
-                { status: "cancelled" },
+                { status: "paused" },
+                { status: "declined" },
+                { status: "noShow" },
                 { status: "reschedule" },
-                { status: "pending" },
-                { status: "approved" }
-            ] // OR condition for matching any of the statuses
+            ]
         })
         .populate([
             { path: 'client', select: 'first_name last_name' }, 

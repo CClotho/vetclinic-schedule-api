@@ -8,6 +8,7 @@ const pet_controller = require("../controllers/admin/petController");
 const doctor_controller = require("../controllers/admin/doctorController")
 const passport = require("passport");
 
+
 const multer = require('multer');
 
 const storage = multer.memoryStorage();
@@ -23,6 +24,21 @@ const { appointmentValidationRules,  appointmentCreateValidation } = require("..
 const DoctorValidationRules = require("../middlewares/doctorValidation")
 // In main app.use("/admin", adminRouter)
 
+
+
+
+
+//For reset password
+router.put('/clients/client/reset-password',
+passport.authenticate('jwt', { session: false }),
+ensureRole("doctor"), 
+client_controller.reset_password);
+
+
+router.put('/clients/client/edit',
+passport.authenticate('jwt', { session: false }),
+ensureRole("doctor"), 
+client_controller.edit_client_information)
 
 //FOR DOCTOR PROFILE
 

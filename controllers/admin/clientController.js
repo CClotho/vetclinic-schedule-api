@@ -1,5 +1,7 @@
 const Client = require("../../models/client");
+const User = require("../../models/user");
 const asyncHandler = require('express-async-handler');
+const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 
 
@@ -66,6 +68,67 @@ exports.get_clients  = asyncHandler(async (req, res) => {
 
 })
 
+exports.reset_password = asyncHandler(async(req, res)=> {
+    const {_id, newPassword } = req.body;
+    console.log(_id)
+  try {
+      // Validate userId and newPassword
+      // ...
+
+      // Find the user by ID
+      const user = await User.findById(_id);
+
+      if (!user) {
+          return res.status(404).json({ error: 'User not found.' });
+      }
+
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update the user's password
+      user.password = hashedPassword;
+      await user.save();
+
+      // You might want to log this action or notify the user that their password has been changed
+      // ...
+
+      return res.status(200).json({ message: 'Password reset successfully.' });
+    } catch (error) {
+        console.error('Error resetting password:', error);
+        return res.status(500).json({ error: 'An error occurred while resetting the password.' });
+    }
+})
+
+
+
+exports.edit_client_information = asyncHandler(async(req, res) => {
+
+   
+    const { _id, first_name, last_name, age, phone_number, email } = req.body;
+    console.log(_id)
+    try {
+        // Find client by ID and update
+        const updateData = await Client.findByIdAndUpdate(_id,
+            { first_name, last_name, age, phone_number, email },
+            { new: true }
+            
+        )
+
+        if (!updateData) {
+            return res.status(404).json({ message: 'Client not found' });
+        }
+
+    
+        // Send success response
+        res.status(200).json({ message: 'Client updated successfully', client: updateData });
+    } catch (error) {
+        console.error('Error updating client:', );
+        res.status(500).json({ message: 'Error updating client', error });
+    }
+})
+
+
+
 
 //GET list of pets of a client
 
@@ -79,6 +142,10 @@ exports.get_client_pets = asyncHandler(async(req, res) => {
 exports.get_client = asyncHandler(async(req, res) => {
     res.status(200).json({message: 'testing'})
 })
+
+
+
+
 
 
 
