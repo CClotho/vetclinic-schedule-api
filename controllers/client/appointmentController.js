@@ -98,7 +98,7 @@ exports.appointment_today_queue = asyncHandler(async (req, res) => {
             $or: [
                 { status: "approved" },
                 { status: "started" },
-                { status: "finished" },
+                //{ status: "finished" }, thinking whether to add this for client reference or auto remove data from ui when finished
                 { status: "paused" },
             ]
         })
