@@ -176,9 +176,20 @@ exports.appointment_today_queue = asyncHandler(async (req, res) => {
             { path: 'services' }])
             .lean();
 
-        // Separate and sort grooming and treatment appointments
-        const groomingAppointments = appointments.filter(appointment => appointment.service_type === 'grooming');
-        const treatmentAppointments = appointments.filter(appointment => appointment.service_type === 'treatment');
+            console.log("Client ID from Request:", req.user.client._id.toString());
+
+            const markedAppointments = appointments.map(appointment => {
+                console.log("Comparing appointment client:", appointment.client._id.toString(), "with request client:", req.user.client._id.toString());
+                return {
+                    ...appointment,
+                    isClientAppointment: appointment.client._id.toString() === req.user.client._id.toString()
+                };
+            });
+    
+            // Separate and sort grooming and treatment appointments
+            const groomingAppointments = markedAppointments.filter(appointment => appointment.service_type === 'grooming');
+            const treatmentAppointments = markedAppointments.filter(appointment => appointment.service_type === 'treatment');
+    
 
         res.json({
             groomingAppointments: groomingAppointments.length > 0 ? groomingAppointments : [],
