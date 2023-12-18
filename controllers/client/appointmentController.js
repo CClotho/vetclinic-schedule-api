@@ -62,7 +62,9 @@ exports.create_client_appointment = asyncHandler(async (req, res) => {
 
 
 exports.appointments_today_list = asyncHandler(async (req, res) => {
-    const today = new Date();
+    try {
+
+        const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const tomorrow = new Date(today);
@@ -74,11 +76,47 @@ exports.appointments_today_list = asyncHandler(async (req, res) => {
         date: {
             $gte: today,
             $lt: tomorrow
-        }
-    });
+        },
+        $or: [
+            { status: "approved" },
+            { status: "started" },
+            { status: "paused" },
+        ]
+        
+    })
+    .populate([  
+        { path: 'client', select: 'first_name last_name' },
+        { path: 'pet', select: 'pet_name' },
+        { path: 'doctor', select: 'first_name' },
+        { path: 'services' }])
+        .lean();
 
-    res.json(appointments);
+    if (appointments.length === 0) {
+        return res.status(200).json({
+            message: 'No appointments for today',
+            groomingAppointments: [],
+            treatmentAppointments: []
+        });
+    }
+
+    const groomingAppointments = appointments.filter(appointment => appointment.service_type === 'grooming');
+        const treatmentAppointments = appointments.filter(appointment => appointment.service_type === 'treatment');
+
+        // Return only the appointment types that exist for the client
+        res.json({
+            groomingAppointments: groomingAppointments.length > 0 ? groomingAppointments : [],
+            treatmentAppointments: treatmentAppointments.length > 0 ? treatmentAppointments : [],
+        });
+
+
+    } catch (err) {
+        console.error(`Error fetching appointments queue today: ${err}`);
+        res.status(500).send(`Error fetching appointments queue today: ${err}`);
+    }
 });
+
+
+
 
 exports.appointment_today_queue = asyncHandler(async (req, res) => {
     const today = new Date();
@@ -88,29 +126,17 @@ exports.appointment_today_queue = asyncHandler(async (req, res) => {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     try {
-        // Find all appointments for the client for today
-        const appointments = await Appointment.find({
+        // Find all relevant appointments for the client for today
+        const clientAppointments = await Appointment.find({
             client: req.user.client._id,
             date: {
                 $gte: today,
                 $lt: tomorrow
             },
-            $or: [
-                { status: "approved" },
-                { status: "started" },
-                //{ status: "finished" }, thinking whether to add this for client reference or auto remove data from ui when finished
-                { status: "paused" },
-            ]
-        })
-        .populate([
-            { path: 'client', select: 'first_name last_name' }, 
-            { path: 'pet', select: 'pet_name' }, 
-            { path: 'doctor', select: 'first_name' },
-            { path: 'services' },
-        ])
-        .lean();
+            status: { $in: ["approved", "started", "paused"] }
+        }).lean();
 
-        if (appointments.length === 0) {
+        if (clientAppointments.length === 0) {
             return res.status(200).json({
                 message: 'No appointments for today',
                 groomingAppointments: [],
@@ -118,11 +144,42 @@ exports.appointment_today_queue = asyncHandler(async (req, res) => {
             });
         }
 
+        // Determine the types of appointments the client has
+        const clientHasGrooming = clientAppointments.some(appointment => appointment.service_type === 'grooming');
+        const clientHasTreatment = clientAppointments.some(appointment => appointment.service_type === 'treatment');
+
+        // Construct a query for all appointments for today based on the client's appointment types
+        let query = {
+            date: { $gte: today, $lt: tomorrow },
+            status: { $in: ["approved", "started", "paused"] },
+            $or: []
+        };
+
+        if (clientHasGrooming) query.$or.push({ service_type: 'grooming' });
+        if (clientHasTreatment) query.$or.push({ service_type: 'treatment' });
+
+        // If the client has neither grooming nor treatment appointments, return empty lists
+        if (query.$or.length === 0) {
+            return res.status(200).json({
+                message: 'No relevant appointments for today',
+                groomingAppointments: [],
+                treatmentAppointments: []
+            });
+        }
+
+        // Find all relevant appointments for today
+        const appointments = await Appointment.find(query)
+            .populate([  
+            { path: 'client', select: 'first_name last_name' },
+            { path: 'pet', select: 'pet_name' },
+            { path: 'doctor', select: 'first_name' },
+            { path: 'services' }])
+            .lean();
+
         // Separate and sort grooming and treatment appointments
         const groomingAppointments = appointments.filter(appointment => appointment.service_type === 'grooming');
         const treatmentAppointments = appointments.filter(appointment => appointment.service_type === 'treatment');
 
-        // Return only the appointment types that exist for the client
         res.json({
             groomingAppointments: groomingAppointments.length > 0 ? groomingAppointments : [],
             treatmentAppointments: treatmentAppointments.length > 0 ? treatmentAppointments : [],
@@ -135,9 +192,12 @@ exports.appointment_today_queue = asyncHandler(async (req, res) => {
 });
 
 
+
 // Fetch pending appointments
 exports.get_pending_appointments = asyncHandler(async (req, res) => {
-     let pendingAppointments = await Appointment.find({ status: 'pending' })
+     let pendingAppointments = await Appointment.find(
+        {client: req.user.client._id,
+         status: 'pending' })
         .populate({ path: 'client', select: 'first_name last_name' })
         .populate({ path: 'pet', select: 'pet_name' })
         .populate({ path: 'services' }) // Populate services as ObjectIds

@@ -97,7 +97,7 @@ grooming_controller.delete_grooming);
 router.post("/service/create/treatment",
 passport.authenticate('jwt', { session: false }), // This ensures the request is authenticated
 ensureRole("doctor"), // This ensures that only admin have access to process this
-TreatmentDeleteValidationRules(),validate,
+validate,
 treatment_controller.create_treatment)
 
 // PUT Edit a treatment 
